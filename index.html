@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gantt · Desarrollos Ventana Mayo 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f4;color:#1a1a1a;}
+.page{max-width:100%;padding:24px;}
+h1{font-size:18px;font-weight:600;color:#1B3557;margin-bottom:4px;}
+.subtitle{font-size:12px;color:#888;margin-bottom:16px;}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+.leg{display:flex;align-items:center;gap:5px;font-size:12px;color:#555;}
+.leg-sw{width:22px;height:12px;border-radius:3px;flex-shrink:0;}
+.wrap{overflow-x:auto;border:1px solid #ddd;border-radius:8px;background:#fff;}
+.gantt{display:grid;}
+.sticky-task{position:sticky;left:0;z-index:3;background:inherit;}
+.sticky-dev{position:sticky;z-index:3;background:inherit;}
+.hdr-top{height:20px;font-size:10px;font-weight:600;color:#fff;text-align:center;display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,.2);}
+.hdr-day{height:18px;font-size:9px;color:#555;text-align:center;border-right:1px solid #e5e5e5;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:center;background:#fafafa;}
+.hdr-day.we{background:#f0f0f0;color:#aaa;}
+.row-task{height:26px;font-size:11px;color:#222;padding:0 8px;border-right:1px solid #e5e5e5;border-bottom:1px solid #f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;}
+.row-task:hover{background:#f0f6ff !important;}
+.row-dev{height:26px;font-size:10px;font-weight:600;padding:0 6px;border-right:1px solid #e5e5e5;border-bottom:1px solid #f0f0f0;white-space:nowrap;display:flex;align-items:center;}
+.day-cell{height:26px;border-right:1px solid #e8e8e8;border-bottom:1px solid #f0f0f0;}
+.day-cell.we{background:#f4f4f4;}
+.tooltip{position:fixed;background:#1B3557;color:#fff;font-size:11px;padding:6px 10px;border-radius:6px;pointer-events:none;z-index:999;white-space:nowrap;display:none;}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Gantt · Desarrollos Ventana Mayo 2026</h1>
+  <p class="subtitle">Abr – Jul 2026 &nbsp;·&nbsp; Generado desde el archivo de planificación</p>
+
+  <div class="legend">
+    <div class="leg"><div class="leg-sw" style="background:#F6C700;"></div>Desarrollo</div>
+    <div class="leg"><div class="leg-sw" style="background:#5BA65B;"></div>UAT</div>
+    <div class="leg"><div class="leg-sw" style="background:#D4A017;"></div>Cierre</div>
+    <div class="leg"><div class="leg-sw" style="background:#4A90C4;"></div>Restated</div>
+    <div class="leg"><div class="leg-sw" style="background:#C0476A;"></div>Go live</div>
+    <div class="leg"><div class="leg-sw" style="background:#f0f0f0;border:1px solid #ddd;"></div>Fin de semana</div>
+  </div>
+
+  <div class="wrap">
+    <div class="gantt" id="g"></div>
+  </div>
+</div>
+
+<div class="tooltip" id="tip"></div>
+
+<script>
+const TASKS = [
+  {task:"Apertura de VIS entre RE y MO",dev:"Julian / Sebas",segs:{"FFFFFF00":["2026-04-23","2026-04-24"],"FFB6D7A8":["2026-04-27","2026-04-28","2026-04-29","2026-04-30"]}},
+  {task:"Proximity: Grocery + Pharma (TBD)",dev:"Santiago",segs:{"FFFFFF00":["2026-04-30","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11","2026-05-12","2026-05-13"],"FFB6D7A8":["2026-05-15"]}},
+  {task:"Naming: Proximity → Food Delivery / Grocery",dev:"Santiago",segs:{"FFFFFF00":["2026-04-30","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11","2026-05-12","2026-05-13"],"FFB6D7A8":["2026-05-15"]}},
+  {task:"Shipping Op. cost - ABC Costing PAPM",dev:"Santiago",segs:{"FFFFFF00":["2026-04-23","2026-04-24","2026-04-27","2026-04-28","2026-04-29","2026-04-30"],"FFB6D7A8":["2026-05-04"]}},
+  {task:"Distribucion CBT Rebates por track (roadmap)",dev:"Julian",segs:{}},
+  {task:"Meli USD by Site - Distribucion Yield regalo",dev:"Alejandro",segs:{"FFFFFF00":["2026-04-24","2026-04-27","2026-04-28","2026-04-29","2026-04-30"],"FFB6D7A8":["2026-05-04"]}},
+  {task:"Segregacion Gastos IA x BU/Subbu/Linea/Site",dev:"Alejandro",segs:{"FFFFFF00":["2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11"],"FFB6D7A8":["2026-05-13","2026-05-14","2026-05-15"]}},
+  {task:"CBT by site Metricas Shipping (Net Rev & Shp Cost)",dev:"Julian",segs:{"FFFFFF00":["2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11"],"FFB6D7A8":["2026-05-13","2026-05-14","2026-05-15"]}},
+  {task:"Adecuacion ADS indirecto + Meli Play",dev:"Finops",segs:{}},
+  {task:"Calculo prevision MDC",dev:"Krister / Sebas",segs:{"FFFFFF00":["2026-04-23","2026-04-24","2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11","2026-05-12","2026-05-13","2026-05-14"],"FFB6D7A8":["2026-05-15"]}},
+  {task:"Distribution Type (restatement)",dev:"Juli",segs:{"FFFFFF00":["2026-04-23","2026-04-24"],"FFB6D7A8":["2026-04-27","2026-04-28","2026-04-29","2026-04-30"]}},
+  {task:"(MELI+) Ajuste Managerial Marketing Branding",dev:"QG",segs:{"FFFFFF00":["2026-04-23","2026-04-24"],"FFB6D7A8":["2026-04-27","2026-04-28","2026-04-29","2026-04-30"]}},
+  {task:"Adecuacion Retail General con PL en 0",dev:"QG",segs:{"FFFFFF00":["2026-04-23","2026-04-24"],"FFB6D7A8":["2026-04-27","2026-04-28","2026-04-29","2026-04-30"]}},
+  {task:"(MELI+) Creacion Agrupador Revs Ads MELI+",dev:"QG",segs:{"FFFFFF00":["2026-04-23","2026-04-24"],"FFB6D7A8":["2026-04-27","2026-04-28","2026-04-29","2026-04-30"]}},
+  {task:"Tablas managerial mundo nuevo",dev:"Sebas",segs:{"FFFFFF00":["2026-04-27","2026-04-28"],"FFB6D7A8":["2026-04-29"]}},
+  {task:"Automatizacion drivers",dev:"QG",segs:{"FFFFFF00":["2026-04-23","2026-04-24","2026-04-27","2026-04-28","2026-04-29","2026-04-30"],"FFB6D7A8":["2026-05-15","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-25","2026-05-26","2026-05-27","2026-05-28","2026-05-29"]}},
+  {task:"Controles con IA",dev:"Interno",segs:{"FFFFFF00":["2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08"],"FFB6D7A8":["2026-05-15","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-25","2026-05-26","2026-05-27","2026-05-28","2026-05-29"]}},
+  {task:"Ajustes ABM",dev:"ACN",segs:{"FFFFFF00":["2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08"],"FFB6D7A8":["2026-05-15","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-25","2026-05-26","2026-05-27","2026-05-28","2026-05-29"]}},
+  {task:"Cierre",dev:"Finops",segs:{"FFFFE599":["2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11","2026-05-12","2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05","2026-06-08","2026-06-09"]}},
+  {task:"Restated",dev:"Finops",segs:{"FFCFE2F3":["2026-06-10","2026-06-11","2026-06-12","2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-19","2026-06-22","2026-06-23","2026-06-24","2026-06-25","2026-06-26","2026-06-29","2026-06-30"]}},
+  {task:"UAT Distribuidor",dev:"Finops/FPS",segs:{"FFB6D7A8":["2026-05-15","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-25","2026-05-26","2026-05-27","2026-05-28","2026-05-29","2026-06-10","2026-06-11","2026-06-12","2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-19","2026-06-22","2026-06-23","2026-06-24","2026-06-25","2026-06-26"]}},
+  {task:"Deploy",dev:"FPS",segs:{"FFFFFF00":["2026-06-29","2026-06-30"]}},
+  {task:"Go live",dev:"Finops/FPS",segs:{"FFEAD1DC":["2026-07-01","2026-07-02","2026-07-03","2026-07-06","2026-07-07","2026-07-08"]}}
+];
+
+const COLOR_FILL = {'FFFFFF00':'#F6C700','FFB6D7A8':'#5BA65B','FFFFE599':'#D4A017','FFCFE2F3':'#4A90C4','FFEAD1DC':'#C0476A'};
+const COLOR_NAME = {'FFFFFF00':'Desarrollo','FFB6D7A8':'UAT','FFFFE599':'Cierre','FFCFE2F3':'Restated','FFEAD1DC':'Go live'};
+const DEV_COLORS = {
+  'Julian / Sebas':'#2563EB','Julian':'#2563EB','Juli':'#2563EB',
+  'Santiago':'#D97706','Alejandro':'#7C3AED','QG':'#059669',
+  'Sebas':'#B45309','Krister / Sebas':'#B45309',
+  'Finops':'#6B7280','Finops/FPS':'#374151','FPS':'#111827',
+  'Interno':'#DB2777','ACN':'#0284C7'
+};
+
+const MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function makeDates(s,e){
+  const dates=[],d=new Date(s),end=new Date(e);
+  while(d<=end){dates.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}
+  return dates;
+}
+const allDates = makeDates('2026-04-23','2026-07-09');
+const isWE = d=>{const day=new Date(d).getDay();return day===0||day===6;};
+
+const TASK_W=220, DEV_W=88, DAY_W=17, ROW_H=26, HDR_MO=20, HDR_DAY=18;
+const N=allDates.length;
+const g=document.getElementById('g');
+
+g.style.gridTemplateColumns=`${TASK_W}px ${DEV_W}px repeat(${N},${DAY_W}px)`;
+g.style.width=(TASK_W+DEV_W+N*DAY_W)+'px';
+
+function cell(style,text,title){
+  const e=document.createElement('div');
+  Object.assign(e.style,style);
+  if(text)e.textContent=text;
+  if(title)e.title=title;
+  return e;
+}
+
+// Month header
+const emptyMo1=cell({height:HDR_MO+'px',background:'#f9f9f9',borderRight:'1px solid #ddd',borderBottom:'1px solid #ddd',position:'sticky',left:'0',zIndex:'4'});
+const emptyMo2=cell({height:HDR_MO+'px',background:'#f9f9f9',borderRight:'1px solid #ddd',borderBottom:'1px solid #ddd',position:'sticky',left:TASK_W+'px',zIndex:'4'});
+g.appendChild(emptyMo1);g.appendChild(emptyMo2);
+
+let curMo=null,moCount=0,moBuf=[];
+allDates.forEach(d=>{
+  const mo=d.slice(0,7);
+  if(mo!==curMo){if(curMo)moBuf.push({mo:curMo,count:moCount});curMo=mo;moCount=1;}else moCount++;
+});
+if(curMo)moBuf.push({mo:curMo,count:moCount});
+
+moBuf.forEach(({mo,count})=>{
+  const[y,m]=mo.split('-');
+  const c=cell({height:HDR_MO+'px',gridColumn:`span ${count}`,background:'#1B3557',color:'#fff',fontSize:'10px',fontWeight:'600',textAlign:'center',display:'flex',alignItems:'center',justifyContent:'center',borderRight:'1px solid rgba(255,255,255,.15)',borderBottom:'1px solid rgba(255,255,255,.15)'},`${MONTHS[parseInt(m)-1]} ${y}`);
+  g.appendChild(c);
+});
+
+// Day header
+const dh1=cell({height:HDR_DAY+'px',background:'#f0f4f8',borderRight:'1px solid #ddd',borderBottom:'1px solid #ddd',fontSize:'10px',fontWeight:'600',color:'#555',padding:'0 8px',position:'sticky',left:'0',zIndex:'4',display:'flex',alignItems:'center'},'Tarea');
+const dh2=cell({height:HDR_DAY+'px',background:'#f0f4f8',borderRight:'1px solid #ddd',borderBottom:'1px solid #ddd',fontSize:'10px',fontWeight:'600',color:'#555',padding:'0 6px',position:'sticky',left:TASK_W+'px',zIndex:'4',display:'flex',alignItems:'center'},'Responsable');
+g.appendChild(dh1);g.appendChild(dh2);
+allDates.forEach(d=>{
+  const we=isWE(d);
+  const c=cell({height:HDR_DAY+'px',fontSize:'9px',color:we?'#bbb':'#666',textAlign:'center',display:'flex',alignItems:'center',justifyContent:'center',background:we?'#efefef':'#fafafa',borderRight:'1px solid #e5e5e5',borderBottom:'1px solid #e0e0e0'},d.slice(8).replace(/^0/,''));
+  g.appendChild(c);
+});
+
+// Tooltip
+const tip=document.getElementById('tip');
+document.addEventListener('mousemove',e=>{tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-28)+'px';});
+
+// Task rows
+TASKS.forEach((t,ti)=>{
+  const dateColor={};
+  Object.entries(t.segs).forEach(([col,dates])=>dates.forEach(d=>dateColor[d]=col));
+  const rowBg=ti%2===0?'#fff':'#fafafa';
+
+  const tc=cell({height:ROW_H+'px',background:rowBg,borderRight:'1px solid #e5e5e5',borderBottom:'1px solid #f0f0f0',padding:'0 8px',fontSize:'11px',color:'#222',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',position:'sticky',left:'0',zIndex:'2',display:'flex',alignItems:'center',cursor:'default'},t.task,t.task);
+  tc.addEventListener('mouseenter',()=>{tc.style.background='#e8f0fe';});
+  tc.addEventListener('mouseleave',()=>{tc.style.background=rowBg;});
+  g.appendChild(tc);
+
+  const dc=cell({height:ROW_H+'px',background:rowBg,borderRight:'1px solid #e5e5e5',borderBottom:'1px solid #f0f0f0',padding:'0 6px',fontSize:'10px',fontWeight:'600',whiteSpace:'nowrap',overflow:'hidden',color:DEV_COLORS[t.dev]||'#555',position:'sticky',left:TASK_W+'px',zIndex:'2',display:'flex',alignItems:'center'},t.dev);
+  g.appendChild(dc);
+
+  allDates.forEach(d=>{
+    const we=isWE(d);
+    const col=dateColor[d];
+    let bg=col?COLOR_FILL[col]:(we?'#efefef':rowBg);
+    const c=cell({height:ROW_H+'px',background:bg,borderRight:'1px solid #e8e8e8',borderBottom:'1px solid #f0f0f0',cursor:col?'default':'default'});
+    if(col){
+      c.addEventListener('mouseenter',e=>{
+        tip.style.display='block';
+        tip.textContent=`${t.task} · ${COLOR_NAME[col]} · ${d}`;
+      });
+      c.addEventListener('mouseleave',()=>{tip.style.display='none';});
+    }
+    g.appendChild(c);
+  });
+});
+</script>
+</body>
+</html>
